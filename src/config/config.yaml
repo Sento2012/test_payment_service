@@ -1,0 +1,21 @@
+# Параметры приложения (не секреты). Доступы к БД и RabbitMQ — через env.
+
+consumer:
+  prefetch: 10            # число одновременно обрабатываемых сообщений (QoS)
+
+relay:
+  batch_size: 100
+  poll_interval: 1.0      # сек между опросами outbox
+  backoff_base: 2.0       # основание экспоненты backoff публикации
+  backoff_cap: 60.0       # максимум задержки, сек
+
+retry:                    # RabbitMQ-native retry/DLQ, возрастающий TTL по уровням (мс)
+  ttls_ms: [1000, 5000, 25000]   # 3 повтора: 1s, 5s, 25s
+
+webhook:
+  timeout: 5.0
+
+gateway:                  # эмуляция платёжного шлюза
+  min_delay: 2.0
+  max_delay: 5.0
+  success_rate: 0.9       # 90% succeeded / 10% failed

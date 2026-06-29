@@ -1,0 +1,113 @@
+name: payment-service
+
+services:
+  # Реверс-прокси: единственный сервис с публикуемым портом наружу.
+  # Резолвит домены *.payments.localhost -> внутренние контейнеры.
+  traefik:
+    image: traefik:v3.1
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --api.dashboard=true
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-8088}:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dashboard.rule=Host(`traefik.payments.localhost`)
+      - traefik.http.routers.dashboard.entrypoints=web
+      - traefik.http.routers.dashboard.service=api@internal
+    networks: [payments_net]
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-payments}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-payments}
+      POSTGRES_DB: ${POSTGRES_DB:-payments}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-payments}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [payments_net]
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.payments.localhost`)
+      - traefik.http.routers.rabbitmq.entrypoints=web
+      - traefik.http.services.rabbitmq.loadbalancer.server.port=15672
+    networks: [payments_net]
+
+  # Одноразовый прогон миграций; остальные сервисы ждут его успешного завершения.
+  migrate:
+    build: .
+    command: ["alembic", "upgrade", "head"]
+    env_file: .env
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [payments_net]
+
+  api:
+    build: .
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.api.rule=Host(`api.payments.localhost`)
+      - traefik.http.routers.api.entrypoints=web
+      - traefik.http.services.api.loadbalancer.server.port=8000
+    networks: [payments_net]
+
+  consumer:
+    build: .
+    command: ["faststream", "run", "worker.consumer.main:app"]
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks: [payments_net]
+
+  relay:
+    build: .
+    command: ["python", "-m", "worker.relay.main"]
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks: [payments_net]
+
+volumes:
+  pgdata:
+
+networks:
+  payments_net:
+    driver: bridge
