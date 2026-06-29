@@ -42,15 +42,14 @@ src/
         OutboxRelay/              докачка событий в брокер (OutboxRelay)
       Idempotency/
         PaymentProviderIdempotencyStoreRepository/  стор результата charge (дедуп)
-      RabbitMq/
-        RabbitMqManagement/enum/  exchange · queue · routing_key · message_header
     Frontend/        presentation-модули
-      Request/RequestProcessingService/  routes · schemas (Pydantic) · dependencies (X-API-Key)
+      Request/RequestProcessingService/  routes · schemas (Pydantic) · dependencies (X-API-Key, DI-провайдеры)
   repository/        ORM-независимый слой персистентности:
-                       entity (бизнес-сущности) · *_repository (SQLAlchemy-адаптеры) · enum
+                       entity (бизнес-сущности) · *_repository (SQLAlchemy-адаптеры) ·
+                       enum (статусы, типы, routing_key — persisted-значения)
   infrastructure/    адаптеры за портами (каждый — пакет с публичным __init__):
                        Persistence (engine/session/UnitOfWork, ORM) · Http (webhook-клиент) ·
-                       Messaging (broker, topology, publisher)
+                       Messaging (broker, topology + naming exchange/queue/header, publisher)
   shared/            Port (UnitOfWork, Transaction, MessagePublisher, DuplicateKeyError) ·
                        Dto (ContextTransfer, rabbitmq-трансферы)
   config/            настройки (yaml + env, get_settings)

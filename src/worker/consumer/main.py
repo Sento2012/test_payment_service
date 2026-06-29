@@ -9,6 +9,8 @@ from di.container import get_container
 from infrastructure.Messaging import (
     PAYMENTS_EXCHANGE,
     PAYMENTS_NEW_QUEUE,
+    MessageHeader,
+    Queue,
     declare_dlq,
     declare_payments_new_queue,
     declare_retry_queues,
@@ -16,8 +18,6 @@ from infrastructure.Messaging import (
 )
 from infrastructure.Persistence import dispose_engine
 from modules.Backend.Payment.PaymentProcessing import PaymentReferenceTransfer
-from modules.Backend.RabbitMq.RabbitMqManagement.enum.message_header import MessageHeader
-from modules.Backend.RabbitMq.RabbitMqManagement.enum.queue import Queue
 from shared.Dto import PublishToQueueTransfer
 
 logging.basicConfig(level=logging.INFO)

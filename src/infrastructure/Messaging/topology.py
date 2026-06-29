@@ -12,9 +12,8 @@
 from faststream.rabbit import ExchangeType, RabbitExchange, RabbitQueue
 
 from config.settings import get_settings
-from modules.Backend.RabbitMq.RabbitMqManagement.enum.exchange import Exchange
-from modules.Backend.RabbitMq.RabbitMqManagement.enum.queue import Queue
-from modules.Backend.RabbitMq.RabbitMqManagement.enum.routing_key import RoutingKey
+from infrastructure.Messaging.naming import Exchange, Queue
+from repository.enum.routing_key import RoutingKey
 
 _settings = get_settings()
 

@@ -8,9 +8,9 @@ from modules.Backend.Payment.PaymentRepository import (
     PaymentFindTransfer,
     PaymentRepositoryService,
 )
-from modules.Backend.RabbitMq.RabbitMqManagement.enum.routing_key import RoutingKey
 from repository.entity.payment import Payment
 from repository.enum.event_type import EventType
+from repository.enum.routing_key import RoutingKey
 from shared.Dto import ContextTransfer
 from shared.Port import DuplicateKeyError, UnitOfWork
 

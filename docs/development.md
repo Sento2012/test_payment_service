@@ -37,7 +37,8 @@ make check     # всё сразу — lint + type + imports + test
 - **mypy** — статическая типизация (`check_untyped_defs`, `no_implicit_optional`).
 - **import-linter** — фиксирует границы слоёв (контракты в `pyproject.toml`):
   `shared` и `config` не зависят от прикладных слоёв; Backend-домен не импортирует
-  presentation/composition (`worker`, `di`, `Frontend`).
+  presentation/composition (`worker`, `di`, `Frontend`); `infrastructure` не зависит от
+  `modules`/composition (только `shared`/`repository`/`config`).
 
 ## Тесты
 

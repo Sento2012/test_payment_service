@@ -1,4 +1,5 @@
 from infrastructure.Messaging.broker import get_broker
+from infrastructure.Messaging.naming import Exchange, MessageHeader, Queue
 from infrastructure.Messaging.rabbitmq_publisher import RabbitMqPublisher
 from infrastructure.Messaging.topology import (
     DLQ_QUEUE,
@@ -13,6 +14,9 @@ from infrastructure.Messaging.topology import (
 __all__ = [
     "get_broker",
     "RabbitMqPublisher",
+    "Exchange",
+    "Queue",
+    "MessageHeader",
     "DLQ_QUEUE",
     "PAYMENTS_EXCHANGE",
     "PAYMENTS_NEW_QUEUE",

@@ -63,3 +63,10 @@ name = "Backend-домен не зависит от presentation/composition"
 type = "forbidden"
 source_modules = ["modules.Backend"]
 forbidden_modules = ["di", "worker", "modules.Frontend"]
+
+# Инфраструктура не зависит от бизнес-модулей/композиции (только shared/repository/config).
+[[tool.importlinter.contracts]]
+name = "infrastructure не зависит от modules/composition"
+type = "forbidden"
+source_modules = ["infrastructure"]
+forbidden_modules = ["modules", "di", "worker"]
