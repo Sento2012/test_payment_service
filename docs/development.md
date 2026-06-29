@@ -45,5 +45,6 @@ pytest
 | `tests/integration/test_outbox_relay_service.py` | relay публикует в `payments.new`, помечает событие `published` |
 | `tests/integration/test_payment_processing_service.py` | обработка через шлюз (success/failed), статус+webhook в БД, ошибка webhook → retry, повторная обработка идемпотентна |
 | `tests/integration/test_consumer_retry_dlq.py` | роутинг ошибок: retry-очередь уровня → DLQ |
+| `tests/unit/test_outbox_relay_giveup.py` | «ядовитое» событие → `FAILED` после `max_attempts` (без БД/брокера) |
 | `tests/api/test_payments_api.py` | POST 202 / GET, `X-API-Key` (401), `Idempotency-Key` (422), идемпотентность, 404 |
-| `tests/api/test_payments_validation.py` | валидация кривого ввода → 422 |
+| `tests/api/test_payments_validation.py` | валидация кривого ввода → 422 (вкл. SSRF `webhook_url`) |

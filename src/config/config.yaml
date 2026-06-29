@@ -8,6 +8,7 @@ relay:
   poll_interval: 1.0      # сек между опросами outbox
   backoff_base: 2.0       # основание экспоненты backoff публикации
   backoff_cap: 60.0       # максимум задержки, сек
+  max_attempts: 10        # после стольких неудач публикации событие → FAILED (parked)
 
 retry:                    # RabbitMQ-native retry/DLQ, возрастающий TTL по уровням (мс)
   ttls_ms: [1000, 5000, 25000]   # 3 повтора: 1s, 5s, 25s

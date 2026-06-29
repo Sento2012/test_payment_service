@@ -12,6 +12,7 @@ class RelaySettings:
     poll_interval: float
     backoff_base: float
     backoff_cap: float
+    max_attempts: int  # после стольких неудач публикации событие паркуется в FAILED
 
 
 @dataclass(frozen=True, slots=True)

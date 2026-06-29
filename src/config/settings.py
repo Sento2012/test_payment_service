@@ -57,6 +57,7 @@ def get_settings() -> Settings:
             poll_interval=relay.value("poll_interval", 1.0, float),
             backoff_base=relay.value("backoff_base", 2.0, float),
             backoff_cap=relay.value("backoff_cap", 60.0, float),
+            max_attempts=relay.value("max_attempts", 10, int),
         ),
         retry=RetrySettings(
             ttls_ms=retry.value("ttls_ms", (1000, 5000, 25000), int_tuple),

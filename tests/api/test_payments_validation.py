@@ -45,6 +45,11 @@ _INVALID_CASES = [
     ("webhook_url_too_long", _body(webhook_url="https://" + "a" * 2048)),
     ("metadata_wrong_type", _body(metadata="not-a-dict")),
     ("empty_body", {}),
+    # SSRF: webhook_url только https и не приватный/служебный хост
+    ("webhook_not_https", _body(webhook_url="http://example.com/hook")),
+    ("webhook_localhost", _body(webhook_url="https://localhost/hook")),
+    ("webhook_private_ip", _body(webhook_url="https://10.0.0.1/hook")),
+    ("webhook_link_local_metadata", _body(webhook_url="https://169.254.169.254/latest")),
 ]
 
 

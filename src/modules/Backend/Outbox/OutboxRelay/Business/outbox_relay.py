@@ -77,12 +77,26 @@ class OutboxRelay:
             for outbox_event, publish_result in zip(outbox_events, publish_results):
                 if isinstance(publish_result, Exception):
                     outbox_event.attempts += 1
-                    outbox_event.available_at = self._backoff_until(outbox_event.attempts)
                     outbox_event.last_error = str(publish_result)
-                    logger.warning(
-                        "Failed to publish outbox event %s (attempt %s): %s",
-                        outbox_event.id, outbox_event.attempts, publish_result,
-                    )
+                    if outbox_event.attempts >= self._relay_settings.max_attempts:
+                        # «ядовитое» событие: не ретраим бесконечно — паркуем в FAILED
+                        # (нужен разбор/алерт; из выборки pending больше не попадёт)
+                        outbox_event.status = OutboxStatus.FAILED
+                        logger.error(
+                            "outbox event %s parked as FAILED after %s attempts: %s",
+                            outbox_event.id, outbox_event.attempts, publish_result,
+                        )
+                    else:
+                        outbox_event.available_at = self._backoff_until(
+                            outbox_event.attempts
+                        )
+                        logger.warning(
+                            "Failed to publish outbox event %s (attempt %s/%s): %s",
+                            outbox_event.id,
+                            outbox_event.attempts,
+                            self._relay_settings.max_attempts,
+                            publish_result,
+                        )
                 else:
                     outbox_event.status = OutboxStatus.PUBLISHED
                     outbox_event.published_at = datetime.now(timezone.utc)
