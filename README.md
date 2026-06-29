@@ -67,6 +67,16 @@ curl http://api.payments.localhost:8088/api/v1/payments/<payment_id> \
 `POST` обязательно требует заголовок `Idempotency-Key`; повтор с тем же ключом
 возвращает тот же платёж, нового не создаёт.
 
+### Смоук-тест API
+
+Готовый скрипт: создание → идемпотентность → ожидание статуса + негативные кейсы
+(401/422/404).
+
+```bash
+./scripts/api_smoke.sh
+# переопределение: BASE_URL=... API_KEY=... WEBHOOK_URL=https://webhook.site/<uuid> ./scripts/api_smoke.sh
+```
+
 ## Тесты
 
 Интеграционные на testcontainers (реальные Postgres + RabbitMQ) + API. Запуск, покрытие
