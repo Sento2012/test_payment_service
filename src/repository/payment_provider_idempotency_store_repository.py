@@ -6,10 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.Persistence.orm import PaymentProviderIdempotencyStoreORM
 from repository.entity.idempotency_record import IdempotencyRecord
+from repository.payment_provider_idempotency_store_repository_interface import (
+    PaymentProviderIdempotencyStoreRepositoryInterface,
+)
 from shared.Port import Transaction
 
 
-class PaymentProviderIdempotencyStoreRepository:
+class PaymentProviderIdempotencyStoreRepository(
+    PaymentProviderIdempotencyStoreRepositoryInterface
+):
     """Персистентность стора идемпотентности (SQLAlchemy). Stateless: сессия — параметр.
 
     Хэндл приходит как непрозрачный Transaction (порт) — конкретный AsyncSession

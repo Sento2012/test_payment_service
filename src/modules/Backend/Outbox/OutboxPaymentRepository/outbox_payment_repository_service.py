@@ -4,7 +4,7 @@ from modules.Backend.Outbox.OutboxPaymentRepository.dto import (
     OutboxEventUpdateTransfer,
 )
 from repository.entity.outbox_event import OutboxEvent
-from repository.outbox_repository import OutboxRepository
+from repository.outbox_repository_interface import OutboxRepositoryInterface
 from shared.Port import UnitOfWork
 
 
@@ -15,7 +15,7 @@ class OutboxPaymentRepositoryService:
     открывает свою короткую."""
 
     def __init__(
-        self, unit_of_work: UnitOfWork, outbox_repository: OutboxRepository
+        self, unit_of_work: UnitOfWork, outbox_repository: OutboxRepositoryInterface
     ) -> None:
         self._unit_of_work = unit_of_work
         self._outbox_repository = outbox_repository

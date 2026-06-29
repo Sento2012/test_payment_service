@@ -3,8 +3,8 @@ from modules.Backend.Idempotency.PaymentProviderIdempotencyStoreRepository.dto i
     IdempotencyRecordDraftTransfer,
 )
 from repository.entity.idempotency_record import IdempotencyRecord
-from repository.payment_provider_idempotency_store_repository import (
-    PaymentProviderIdempotencyStoreRepository,
+from repository.payment_provider_idempotency_store_repository_interface import (
+    PaymentProviderIdempotencyStoreRepositoryInterface,
 )
 from shared.Port import UnitOfWork
 
@@ -21,7 +21,7 @@ class PaymentProviderIdempotencyStoreRepositoryService:
     def __init__(
         self,
         unit_of_work: UnitOfWork,
-        payment_provider_idempotency_store_repository: PaymentProviderIdempotencyStoreRepository,
+        payment_provider_idempotency_store_repository: PaymentProviderIdempotencyStoreRepositoryInterface,  # noqa: E501
     ) -> None:
         self._unit_of_work = unit_of_work
         self._payment_provider_idempotency_store_repository = (

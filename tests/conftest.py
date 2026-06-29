@@ -12,6 +12,8 @@ import os
 import pytest
 import pytest_asyncio
 
+from shared.Port import HttpClientInterface
+
 _TABLES = ("payments", "payment_outbox", "payment_provider_idempotency_store")
 _QUEUES = (
     "payments.new",
@@ -134,7 +136,7 @@ async def clean_state(app_setup, rabbit):
     yield
 
 
-class FakeHttpClient:
+class FakeHttpClient(HttpClientInterface):
     """Подменный HTTP-клиент (порт HttpClientInterface): пишет вызовы, по флагу падает."""
 
     def __init__(self, fail: bool = False) -> None:

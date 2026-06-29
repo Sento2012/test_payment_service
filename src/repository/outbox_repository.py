@@ -6,10 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from infrastructure.Persistence.orm import OutboxORM
 from repository.entity.outbox_event import OutboxEvent
 from repository.enum.outbox_status import OutboxStatus
+from repository.outbox_repository_interface import OutboxRepositoryInterface
 from shared.Port import Transaction
 
 
-class OutboxRepository:
+class OutboxRepository(OutboxRepositoryInterface):
     """Персистентность payment_outbox (SQLAlchemy). Принимает/возвращает сущность
     OutboxEvent. Stateless: сессия передаётся в каждый метод.
 

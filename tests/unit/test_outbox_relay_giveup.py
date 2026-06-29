@@ -1,5 +1,7 @@
 """OutboxRelay: «ядовитое» событие после max_attempts паркуется в FAILED, а не
 ретраится вечно. Юнит-тест с фейками (без БД/брокера)."""
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from config.groups import RelaySettings
@@ -7,35 +9,41 @@ from modules.Backend.Outbox.OutboxRelay.outbox_relay import OutboxRelay
 from repository.entity.outbox_event import OutboxEvent
 from repository.enum.event_type import EventType
 from repository.enum.outbox_status import OutboxStatus
-
-
-class _FakeTx:
-    async def __aenter__(self):
-        return object()
-
-    async def __aexit__(self, *exc):
-        return False
+from shared.Dto import PublishEventTransfer, PublishToQueueTransfer
+from shared.Port import MessagePublisher, Transaction
 
 
 class _FakeUnitOfWork:
-    def begin(self):
-        return _FakeTx()
+    """Реализует порт UnitOfWork; хэндл не используется (репозиторий замокан)."""
+
+    @asynccontextmanager
+    async def begin(self) -> AsyncIterator[Transaction]:
+        yield object()
+
+    @asynccontextmanager
+    async def use_transaction(self, context_transfer=None) -> AsyncIterator[Transaction]:
+        yield object()
 
 
-class _FakeRepositoryFacade:
+class _FakeOutboxRepositoryService:
     def __init__(self, events: list[OutboxEvent]) -> None:
         self._events = events
 
-    async def get_pending_events_with_lock(self, _transfer):
+    async def get_pending_events_with_lock(self, _transfer) -> list[OutboxEvent]:
         return self._events
 
-    async def update_outbox_event(self, _transfer):
+    async def update_outbox_event(self, _transfer) -> None:
         return None
 
 
-class _FailingRabbitMqFacade:
-    async def publish_event(self, _transfer):
+class _FailingPublisher(MessagePublisher):
+    async def publish_event(self, publish_event_transfer: PublishEventTransfer) -> None:
         raise RuntimeError("broker down")
+
+    async def publish_to_queue(
+        self, publish_to_queue_transfer: PublishToQueueTransfer
+    ) -> None:
+        raise NotImplementedError  # в этом тесте не используется
 
 
 def _event(attempts: int) -> OutboxEvent:
@@ -57,7 +65,11 @@ def _relay(events: list[OutboxEvent], max_attempts: int = 3) -> OutboxRelay:
         max_attempts=max_attempts,
     )
     return OutboxRelay(
-        _FakeUnitOfWork(), _FakeRepositoryFacade(events), _FailingRabbitMqFacade(), settings
+        _FakeUnitOfWork(),
+        # тест-дубль доменного сервиса (конкретный класс) — порт для него не заводим
+        _FakeOutboxRepositoryService(events),  # type: ignore[arg-type]
+        _FailingPublisher(),
+        settings,
     )
 
 

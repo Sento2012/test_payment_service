@@ -45,7 +45,8 @@ src/
     Frontend/        presentation-модули
       Request/RequestProcessingService/  routes · schemas (Pydantic) · dependencies (X-API-Key, DI-провайдеры)
   repository/        ORM-независимый слой персистентности:
-                       entity (бизнес-сущности) · *_repository (SQLAlchemy-адаптеры) ·
+                       entity (бизнес-сущности) · *_repository_interface (порты, ABC) ·
+                       *_repository (SQLAlchemy-адаптеры, реализуют порты) ·
                        enum (статусы, типы, routing_key — persisted-значения)
   infrastructure/    адаптеры за портами (каждый — пакет с публичным __init__):
                        Persistence (engine/session/UnitOfWork, ORM) · Http (webhook-клиент) ·
@@ -76,6 +77,10 @@ worker  →  modules (публичный API пакетов)  →  repository / 
   ORM-модели и маппинг изолированы в `infrastructure/Persistence`. Хэндл транзакции
   приходит как непрозрачный `Transaction` (порт) — приведение к `AsyncSession` локализовано
   в адаптере-репозитории (там, где инфраструктура и так известна).
+- **Инверсия зависимостей**: домен-сервисы зависят от **репозиторных портов**
+  (`repository/*_repository_interface.py`, ABC), а не от конкретных адаптеров. Адаптеры
+  реализуют порты и инжектятся DI-контейнером. Поэтому у `modules.Backend` нет зависимости
+  от `infrastructure` — даже транзитивной (зафиксировано контрактом import-linter).
 - DTO — `dataclass`-трансферы; идентичность сущности (`id`/`created_at`) задаётся доменом
   (дефолтами), источник истины `created_at` — БД. Транзакция ходит в `ContextTransfer`.
 

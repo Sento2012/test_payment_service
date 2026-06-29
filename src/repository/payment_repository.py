@@ -7,10 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from infrastructure.Persistence.orm import PaymentORM
 from repository.entity.payment import Payment
 from repository.enum.payment_status import PaymentStatus
+from repository.payment_repository_interface import PaymentRepositoryInterface
 from shared.Port import Transaction
 
 
-class PaymentRepository:
+class PaymentRepository(PaymentRepositoryInterface):
     """Персистентность платежей (SQLAlchemy). Принимает/возвращает сущность Payment,
     маппит её на ORM. Stateless: сессия передаётся в каждый метод.
 

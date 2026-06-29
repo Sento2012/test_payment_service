@@ -4,7 +4,7 @@ from modules.Backend.Payment.PaymentRepository.dto import (
     PaymentUpdateTransfer,
 )
 from repository.entity.payment import Payment
-from repository.payment_repository import PaymentRepository
+from repository.payment_repository_interface import PaymentRepositoryInterface
 from shared.Port import UnitOfWork
 
 
@@ -14,7 +14,7 @@ class PaymentRepositoryService:
     либо открывает свою короткую; принимает/возвращает бизнес-сущность Payment."""
 
     def __init__(
-        self, unit_of_work: UnitOfWork, payment_repository: PaymentRepository
+        self, unit_of_work: UnitOfWork, payment_repository: PaymentRepositoryInterface
     ) -> None:
         self._unit_of_work = unit_of_work
         self._payment_repository = payment_repository
