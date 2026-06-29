@@ -29,11 +29,11 @@ POST → [payments + payment_outbox в одной tx] → relay → payments.new
 
 | Граница | Проблема | Решение | Код |
 |---|---|---|---|
-| Клиент → API | повтор `POST` → два платежа | `Idempotency-Key` UNIQUE, повтор возвращает существующий | [orm.py:81](src/infrastructure/Persistence/orm.py#L81) · [payment_creator.py:66](src/modules/Backend/Payment/PaymentCreate/Business/payment_creator.py#L66) |
-| БД → брокер | dual-write: потеря/«фантом» события | outbox + relay (сначала publish, потом commit) | [outbox_relay.py:59](src/modules/Backend/Outbox/OutboxRelay/Business/outbox_relay.py#L59) |
-| Брокер → consumer | at-least-once: повторная доставка | guard `status` / `notified_at` | [payment_processor.py:69](src/modules/Backend/Payment/PaymentProcessing/Business/payment_processor.py#L69) · [webhook_notification_sender.py:63](src/modules/Backend/Notification/WebhookNotificationService/Business/webhook_notification_sender.py#L63) |
-| Параллельные дубли | prefetch>1 / поды: оба видят `pending` | `SELECT … FOR UPDATE` — второй ждёт и видит не-`pending` | [payment_processor.py:52](src/modules/Backend/Payment/PaymentProcessing/Business/payment_processor.py#L52) · [payment_repository.py:63](src/repository/payment_repository.py#L63) |
-| Consumer → шлюз | charge прошёл, commit упал → повторное списание | стор результата по `payment.id` в отдельной tx | [payment_executor.py:46](src/modules/Backend/Payment/PaymentExecute/Business/payment_executor.py#L46) · [store:29](src/repository/payment_provider_idempotency_store_repository.py#L29) |
+| Клиент → API | повтор `POST` → два платежа | `Idempotency-Key` UNIQUE, повтор возвращает существующий | [orm.py:81](../src/infrastructure/Persistence/orm.py#L81) · [payment_creator.py:66](../src/modules/Backend/Payment/PaymentCreate/Business/payment_creator.py#L66) |
+| БД → брокер | dual-write: потеря/«фантом» события | outbox + relay (сначала publish, потом commit) | [outbox_relay.py:59](../src/modules/Backend/Outbox/OutboxRelay/Business/outbox_relay.py#L59) |
+| Брокер → consumer | at-least-once: повторная доставка | guard `status` / `notified_at` | [payment_processor.py:69](../src/modules/Backend/Payment/PaymentProcessing/Business/payment_processor.py#L69) · [webhook_notification_sender.py:63](../src/modules/Backend/Notification/WebhookNotificationService/Business/webhook_notification_sender.py#L63) |
+| Параллельные дубли | prefetch>1 / поды: оба видят `pending` | `SELECT … FOR UPDATE` — второй ждёт и видит не-`pending` | [payment_processor.py:52](../src/modules/Backend/Payment/PaymentProcessing/Business/payment_processor.py#L52) · [payment_repository.py:63](../src/repository/payment_repository.py#L63) |
+| Consumer → шлюз | charge прошёл, commit упал → повторное списание | стор результата по `payment.id` в отдельной tx | [payment_executor.py:46](../src/modules/Backend/Payment/PaymentExecute/Business/payment_executor.py#L46) · [store:29](../src/repository/payment_provider_idempotency_store_repository.py#L29) |
 
 **Итог:** событие не теряется, двойного списания нет.
 
