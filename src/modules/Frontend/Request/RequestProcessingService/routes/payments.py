@@ -2,10 +2,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 
-from di.container import get_container
 from modules.Backend.Payment.PaymentCreate import PaymentDraftTransfer
 from modules.Backend.Payment.PaymentRepository import PaymentFindTransfer
-from modules.Frontend.Request.RequestProcessingService.dependencies import require_api_key
+from modules.Frontend.Request.RequestProcessingService.dependencies import (
+    PaymentCreatorDep,
+    PaymentRepositoryDep,
+    require_api_key,
+)
 from modules.Frontend.Request.RequestProcessingService.schemas import (
     CreatePaymentRequest,
     PaymentCreatedResponse,
@@ -43,6 +46,7 @@ def _to_response(payment_transfer: Payment) -> PaymentResponse:
 )
 async def create_payment(
     body: CreatePaymentRequest,
+    payment_creator: PaymentCreatorDep,
     idempotency_key: str = Header(..., alias="Idempotency-Key"),
 ) -> PaymentCreatedResponse:
     payment_draft_transfer = PaymentDraftTransfer(
@@ -54,7 +58,7 @@ async def create_payment(
         meta=body.metadata,
         provider=body.provider,
     )
-    payment_transfer, _created = await get_container().payment_creator().create_payment(
+    payment_transfer, _created = await payment_creator.create_payment(
         payment_draft_transfer
     )
     return PaymentCreatedResponse(
@@ -64,8 +68,10 @@ async def create_payment(
     )
 
 @router.get("/{payment_id}", response_model=PaymentResponse)
-async def get_payment(payment_id: UUID) -> PaymentResponse:
-    payment_transfer = await get_container().payment_repository_service().find_payment(
+async def get_payment(
+    payment_id: UUID, payment_repository: PaymentRepositoryDep
+) -> PaymentResponse:
+    payment_transfer = await payment_repository.find_payment(
         PaymentFindTransfer(payment_id=payment_id)
     )
     if payment_transfer is None:
