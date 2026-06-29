@@ -50,8 +50,8 @@ src/
   infrastructure/    адаптеры за портами (каждый — пакет с публичным __init__):
                        Persistence (engine/session/UnitOfWork, ORM) · Http (webhook-клиент) ·
                        Messaging (broker, topology + naming exchange/queue/header, publisher)
-  shared/            Port (UnitOfWork, Transaction, MessagePublisher, DuplicateKeyError) ·
-                       Dto (ContextTransfer, rabbitmq-трансферы)
+  shared/            Port (UnitOfWork, Transaction, MessagePublisher, HttpClientInterface,
+                       DuplicateKeyError) · Dto (ContextTransfer, rabbitmq-трансферы)
   config/            настройки (yaml + env, get_settings)
   di/                DI-контейнер (композиционный корень)
 migrations/          Alembic: payments · payment_outbox · payment_provider_idempotency_store

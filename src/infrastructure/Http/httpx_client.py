@@ -1,7 +1,7 @@
 import httpx
 
 from config.settings import get_settings
-from infrastructure.Http.http_client_interface import HttpClientInterface
+from shared.Port import HttpClientInterface
 
 
 class HttpxClient(HttpClientInterface):

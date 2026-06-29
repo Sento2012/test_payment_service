@@ -1,7 +1,6 @@
 import logging
 from datetime import UTC, datetime
 
-from infrastructure.Http import HttpClientInterface
 from modules.Backend.Notification.dto import WebhookNotificationTransfer
 from modules.Backend.Payment.PaymentRepository import (
     PaymentFindTransfer,
@@ -9,6 +8,7 @@ from modules.Backend.Payment.PaymentRepository import (
     PaymentUpdateTransfer,
 )
 from repository.entity.payment import Payment
+from shared.Port import HttpClientInterface
 
 logger = logging.getLogger(__name__)
 

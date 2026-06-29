@@ -9,7 +9,7 @@
 from functools import lru_cache
 
 from config.settings import Settings, get_settings
-from infrastructure.Http import HttpClientInterface, HttpxClient
+from infrastructure.Http import HttpxClient
 from infrastructure.Messaging import RabbitMqPublisher, get_broker
 from infrastructure.Persistence import SqlAlchemyUnitOfWork, get_session_factory
 from modules.Backend.Idempotency.PaymentProviderIdempotencyStoreRepository import (
@@ -36,7 +36,7 @@ from repository.payment_provider_idempotency_store_repository import (
     PaymentProviderIdempotencyStoreRepository,
 )
 from repository.payment_repository import PaymentRepository
-from shared.Port import MessagePublisher, UnitOfWork
+from shared.Port import HttpClientInterface, MessagePublisher, UnitOfWork
 
 
 class Container:
