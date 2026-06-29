@@ -4,10 +4,10 @@ from decimal import Decimal
 from sqlalchemy import func, select
 
 from infrastructure.Persistence.orm import OutboxORM, PaymentORM
+from modules.Backend.Payment.PaymentCreate.dto import PaymentDraftTransfer
 from repository.enum.currency import Currency
 from repository.enum.outbox_status import OutboxStatus
 from repository.enum.payment_status import PaymentStatus
-from modules.Backend.Payment.PaymentCreate.Dto.payment_draft_transfer import PaymentDraftTransfer
 
 
 def _draft(idempotency_key: str = "create-1") -> PaymentDraftTransfer:
@@ -24,7 +24,7 @@ def _draft(idempotency_key: str = "create-1") -> PaymentDraftTransfer:
 async def test_create_payment_persists_payment_and_outbox(make_container, db):
     container = make_container()
 
-    payment, created = await container.payment_facade().create_payment(_draft())
+    payment, created = await container.payment_creator().create_payment(_draft())
 
     assert created is True
     status = (
@@ -47,10 +47,10 @@ async def test_create_payment_persists_payment_and_outbox(make_container, db):
 async def test_create_payment_is_idempotent_by_key(make_container, db):
     container = make_container()
 
-    first, created_first = await container.payment_facade().create_payment(
+    first, created_first = await container.payment_creator().create_payment(
         _draft("dup-key")
     )
-    second, created_second = await container.payment_facade().create_payment(
+    second, created_second = await container.payment_creator().create_payment(
         _draft("dup-key")
     )
 

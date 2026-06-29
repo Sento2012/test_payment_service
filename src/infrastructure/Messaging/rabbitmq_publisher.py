@@ -1,8 +1,8 @@
 from faststream.rabbit import RabbitBroker
 
 from infrastructure.Messaging.topology import PAYMENTS_EXCHANGE
-from shared.Dto.rabbitmq_transfer import PublishEventTransfer, PublishToQueueTransfer
-from shared.Port.messaging import MessagePublisher
+from shared.Dto import PublishEventTransfer, PublishToQueueTransfer
+from shared.Port import MessagePublisher
 
 
 class RabbitMqPublisher(MessagePublisher):

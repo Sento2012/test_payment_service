@@ -16,14 +16,15 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from repository.enum.currency import Currency
+from repository.enum.event_type import EventType
 from repository.enum.outbox_status import OutboxStatus
 from repository.enum.payment_status import PaymentStatus
 from repository.enum.provider import Provider
-from repository.enum.event_type import EventType
 
 
 def _pg_enum(py_enum, name: str) -> Enum:

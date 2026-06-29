@@ -6,19 +6,19 @@ from faststream.rabbit import RabbitMessage
 
 from config.settings import get_settings
 from di.container import get_container
-from infrastructure.Messaging.broker import get_broker
-from infrastructure.Messaging.topology import (
+from infrastructure.Messaging import (
     PAYMENTS_EXCHANGE,
     PAYMENTS_NEW_QUEUE,
     declare_dlq,
     declare_payments_new_queue,
     declare_retry_queues,
+    get_broker,
 )
-from infrastructure.Persistence.database import dispose_engine
+from infrastructure.Persistence import dispose_engine
+from modules.Backend.Payment.PaymentProcessing import PaymentReferenceTransfer
 from modules.Backend.RabbitMq.RabbitMqManagement.enum.message_header import MessageHeader
 from modules.Backend.RabbitMq.RabbitMqManagement.enum.queue import Queue
-from modules.Backend.Payment.PaymentProcessing.Dto.payment_reference_transfer import PaymentReferenceTransfer
-from shared.Dto.rabbitmq_transfer import PublishToQueueTransfer
+from shared.Dto import PublishToQueueTransfer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("consumer")
@@ -43,7 +43,7 @@ async def on_shutdown() -> None:
 async def _route_to_retry_or_dlq(body: dict, attempt: int, exc: Exception) -> None:
     """RabbitMQ-native retry: republish в retry-очередь уровня (возрастающий TTL),
     после исчерпания попыток — в DLQ. Исходное сообщение ack'ается (штатный return)."""
-    rabbitmq_facade = get_container().rabbitmq_facade()
+    message_publisher = get_container().message_publisher()
     next_attempt = attempt + 1
     max_retries = len(settings.retry.ttls_ms)
 
@@ -53,7 +53,7 @@ async def _route_to_retry_or_dlq(body: dict, attempt: int, exc: Exception) -> No
             "payment %s processing failed (attempt %s/%s): %s -> %s",
             body.get("payment_id"), attempt, max_retries, exc, target,
         )
-        await rabbitmq_facade.publish_to_queue(
+        await message_publisher.publish_to_queue(
             PublishToQueueTransfer(
                 queue_name=target,
                 payload=body,
@@ -65,7 +65,7 @@ async def _route_to_retry_or_dlq(body: dict, attempt: int, exc: Exception) -> No
             "payment %s exhausted %s retries -> DLQ: %s",
             body.get("payment_id"), max_retries, exc,
         )
-        await rabbitmq_facade.publish_to_queue(
+        await message_publisher.publish_to_queue(
             PublishToQueueTransfer(
                 queue_name=Queue.PAYMENTS_NEW_DLQ,
                 payload=body,
@@ -80,7 +80,7 @@ async def on_payment_new(body: dict, msg: RabbitMessage) -> None:
     attempt = int((msg.headers or {}).get(MessageHeader.ATTEMPT, 0))
     try:
         payment_reference_transfer = PaymentReferenceTransfer(payment_id=payment_id)
-        await get_container().payment_facade().process_payment(
+        await get_container().payment_processor().process_payment(
             payment_reference_transfer
         )
     except Exception as exc:  # noqa: BLE001 — любую ошибку обработки уводим в retry/DLQ

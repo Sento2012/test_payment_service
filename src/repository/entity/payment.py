@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from repository.enum.currency import Currency
 from repository.enum.payment_status import PaymentStatus
@@ -13,8 +13,9 @@ class Payment:
     """Бизнес-сущность платежа (соответствует таблице payments).
 
     Обязательные поля = NOT NULL без БД-дефолта (задаются при создании).
-    id/created_at — генерируются БД (None до сохранения). Изменяемая:
-    load → mutate → update.
+    Идентичность задаётся доменом: id генерируется сразу (uuid4), created_at получает
+    значение в момент создания. Источник истины created_at — БД: при чтении _to_entity
+    подставляет фактическое значение колонки. Изменяемая: load → mutate → update.
     """
 
     idempotency_key: str
@@ -29,5 +30,5 @@ class Payment:
     failure_reason: str | None = None
     processed_at: datetime | None = None
     notified_at: datetime | None = None
-    id: UUID | None = None
-    created_at: datetime | None = None
+    id: UUID = field(default_factory=uuid4)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))

@@ -1,20 +1,20 @@
 """Outbox relay: публикует pending-события из payment_outbox в RabbitMQ.
 Запуск: `python -m worker.relay.main`."""
 import asyncio
+import contextlib
 import logging
 
 from config.settings import get_settings
 from di.container import get_container
-from infrastructure.Messaging.broker import get_broker
-from infrastructure.Messaging.topology import declare_payments_new_queue
-from infrastructure.Persistence.database import dispose_engine
+from infrastructure.Messaging import declare_payments_new_queue, get_broker
+from infrastructure.Persistence import dispose_engine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("relay")
 
 
 async def _relay_once() -> int:
-    return await get_container().outbox_relay_facade().relay_pending_events()
+    return await get_container().outbox_relay().relay_pending_events()
 
 
 async def run() -> None:
@@ -42,7 +42,5 @@ async def run() -> None:
 
 
 if __name__ == "__main__":
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(run())
-    except KeyboardInterrupt:
-        pass

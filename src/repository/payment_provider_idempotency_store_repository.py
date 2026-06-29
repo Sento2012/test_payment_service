@@ -1,22 +1,24 @@
+from typing import cast
+
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.Persistence.orm import PaymentProviderIdempotencyStoreORM
 from repository.entity.idempotency_record import IdempotencyRecord
+from shared.Port import Transaction
 
 
 class PaymentProviderIdempotencyStoreRepository:
-    """Персистентность стора идемпотентности (SQLAlchemy). Stateless: сессия — параметр."""
+    """Персистентность стора идемпотентности (SQLAlchemy). Stateless: сессия — параметр.
 
-    def _to_entity(self, orm: PaymentProviderIdempotencyStoreORM) -> IdempotencyRecord:
-        return IdempotencyRecord(
-            key=orm.key, value=orm.value, created_at=orm.created_at
-        )
+    Хэндл приходит как непрозрачный Transaction (порт) — конкретный AsyncSession
+    известен только здесь, в адаптере, поэтому приводим его на входе."""
 
     async def find(
-        self, session: AsyncSession, key: str
+        self, transaction: Transaction, key: str
     ) -> IdempotencyRecord | None:
+        session = cast(AsyncSession, transaction)
         orm = (
             await session.execute(
                 select(PaymentProviderIdempotencyStoreORM).where(
@@ -27,10 +29,11 @@ class PaymentProviderIdempotencyStoreRepository:
         return self._to_entity(orm) if orm else None
 
     async def get_or_create(
-        self, session: AsyncSession, idempotency_record: IdempotencyRecord
+        self, transaction: Transaction, idempotency_record: IdempotencyRecord
     ) -> IdempotencyRecord:
         """Записать, если ключа ещё нет (INSERT ON CONFLICT DO NOTHING), и вернуть
         ДЕЙСТВУЮЩУЮ запись — свою либо чужую (если кто-то записал раньше)."""
+        session = cast(AsyncSession, transaction)
         await session.execute(
             insert(PaymentProviderIdempotencyStoreORM)
             .values(key=idempotency_record.key, value=idempotency_record.value)
@@ -45,3 +48,8 @@ class PaymentProviderIdempotencyStoreRepository:
             )
         ).scalar_one()
         return self._to_entity(orm)
+
+    def _to_entity(self, orm: PaymentProviderIdempotencyStoreORM) -> IdempotencyRecord:
+        return IdempotencyRecord(
+            key=orm.key, value=orm.value, created_at=orm.created_at
+        )

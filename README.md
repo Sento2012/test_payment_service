@@ -23,9 +23,10 @@
   архитектуры и бизнес-логики** (основные моменты на один экран).
 - [docs/architecture.md](docs/architecture.md) — поток обработки, Outbox, транзакции,
   идемпотентность по слоям, retry/DLQ.
-- [docs/project-structure.md](docs/project-structure.md) — структура проекта и иерархия
-  модулей (Spryker-подход), слои и зависимости.
-- [docs/development.md](docs/development.md) — локальный запуск без Docker и тесты.
+- [docs/project-structure.md](docs/project-structure.md) — структура проекта: модули/
+  сервисы, публичный API пакетов через `__init__`, слои и зависимости.
+- [docs/development.md](docs/development.md) — локальный запуск без Docker, тесты и
+  quality gate (ruff · mypy · import-linter).
 
 ---
 

@@ -5,9 +5,9 @@ from decimal import Decimal
 from sqlalchemy import select
 
 from infrastructure.Persistence.orm import OutboxORM
+from modules.Backend.Payment.PaymentCreate.dto import PaymentDraftTransfer
 from repository.enum.currency import Currency
 from repository.enum.outbox_status import OutboxStatus
-from modules.Backend.Payment.PaymentCreate.Dto.payment_draft_transfer import PaymentDraftTransfer
 
 
 def _draft(idempotency_key: str) -> PaymentDraftTransfer:
@@ -21,9 +21,9 @@ def _draft(idempotency_key: str) -> PaymentDraftTransfer:
 
 async def test_relay_publishes_to_queue_and_marks_published(make_container, db, rabbit):
     container = make_container()
-    payment, _ = await container.payment_facade().create_payment(_draft("relay-1"))
+    payment, _ = await container.payment_creator().create_payment(_draft("relay-1"))
 
-    processed = await container.outbox_relay_facade().relay_pending_events()
+    processed = await container.outbox_relay().relay_pending_events()
 
     assert processed == 1
     message = await rabbit.get_message("payments.new")
@@ -40,7 +40,7 @@ async def test_relay_publishes_to_queue_and_marks_published(make_container, db, 
 async def test_relay_no_pending_does_nothing(make_container, rabbit):
     container = make_container()
 
-    processed = await container.outbox_relay_facade().relay_pending_events()
+    processed = await container.outbox_relay().relay_pending_events()
 
     assert processed == 0
     assert await rabbit.get_message("payments.new") is None

@@ -19,6 +19,26 @@ python -m worker.relay.main                     # relay
 > В compose наружу публикуется только Traefik, поэтому для локального запуска приложения
 > порты БД/брокера нужно временно пробросить (или поднимать всё через `docker compose up`).
 
+## Качество кода (линт · типы · границы)
+
+Конфиг всех инструментов — в `pyproject.toml`; зависимости — в `requirements-dev.txt`.
+Удобные цели в `Makefile`:
+
+```bash
+make lint      # ruff: статический линт (E,W,F,I,UP,B,SIM,C4)
+make format    # ruff format + авто-фиксы
+make type      # mypy: статическая типизация
+make imports   # import-linter: контроль архитектурных границ
+make test      # pytest (integration на testcontainers)
+make check     # всё сразу — lint + type + imports + test
+```
+
+- **ruff** — линтер/форматтер (isort-импорты, pyupgrade, bugbear …).
+- **mypy** — статическая типизация (`check_untyped_defs`, `no_implicit_optional`).
+- **import-linter** — фиксирует границы слоёв (контракты в `pyproject.toml`):
+  `shared` и `config` не зависят от прикладных слоёв; Backend-домен не импортирует
+  presentation/composition (`worker`, `di`, `Frontend`).
+
 ## Тесты
 
 Интеграционные на **testcontainers** (реальные Postgres + RabbitMQ): проверяют бизнес-

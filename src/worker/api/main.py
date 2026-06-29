@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from di.container import get_container
-from infrastructure.Persistence.database import dispose_engine
+from infrastructure.Persistence import dispose_engine
 
 
 @asynccontextmanager
@@ -20,7 +20,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.include_router(get_container().request_facade().router())
+app.include_router(get_container().api_router())
 
 
 @app.get("/health", tags=["health"])

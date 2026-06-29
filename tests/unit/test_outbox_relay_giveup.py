@@ -3,7 +3,7 @@
 from uuid import uuid4
 
 from config.groups import RelaySettings
-from modules.Backend.Outbox.OutboxRelay.Business.outbox_relay import OutboxRelay
+from modules.Backend.Outbox.OutboxRelay.outbox_relay import OutboxRelay
 from repository.entity.outbox_event import OutboxEvent
 from repository.enum.event_type import EventType
 from repository.enum.outbox_status import OutboxStatus

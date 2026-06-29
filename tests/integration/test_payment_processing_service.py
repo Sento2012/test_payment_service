@@ -11,10 +11,10 @@ from infrastructure.Persistence.orm import (
     PaymentORM,
     PaymentProviderIdempotencyStoreORM,
 )
+from modules.Backend.Payment.PaymentCreate.dto import PaymentDraftTransfer
+from modules.Backend.Payment.PaymentProcessing.dto import PaymentReferenceTransfer
 from repository.enum.currency import Currency
 from repository.enum.payment_status import PaymentStatus
-from modules.Backend.Payment.PaymentCreate.Dto.payment_draft_transfer import PaymentDraftTransfer
-from modules.Backend.Payment.PaymentProcessing.Dto.payment_reference_transfer import PaymentReferenceTransfer
 
 
 def _draft(idempotency_key: str) -> PaymentDraftTransfer:
@@ -27,7 +27,7 @@ def _draft(idempotency_key: str) -> PaymentDraftTransfer:
 
 
 async def _create_pending(container, key: str):
-    payment, _ = await container.payment_facade().create_payment(_draft(key))
+    payment, _ = await container.payment_creator().create_payment(_draft(key))
     return payment
 
 
@@ -36,7 +36,7 @@ async def test_process_payment_success_updates_db_and_sends_webhook(make_contain
     container = make_container(success_rate=1.0, http_client=fake_http)
     payment = await _create_pending(container, "proc-ok")
 
-    await container.payment_facade().process_payment(
+    await container.payment_processor().process_payment(
         PaymentReferenceTransfer(payment_id=payment.id)
     )
 
@@ -68,7 +68,7 @@ async def test_process_payment_failure_still_sends_webhook(make_container, db):
     container = make_container(success_rate=0.0, http_client=fake_http)
     payment = await _create_pending(container, "proc-fail")
 
-    await container.payment_facade().process_payment(
+    await container.payment_processor().process_payment(
         PaymentReferenceTransfer(payment_id=payment.id)
     )
 
@@ -92,8 +92,8 @@ async def test_process_payment_webhook_error_propagates(make_container, db):
     container = make_container(success_rate=1.0, http_client=fake_http)
     payment = await _create_pending(container, "proc-wh-fail")
 
-    with pytest.raises(Exception):
-        await container.payment_facade().process_payment(
+    with pytest.raises(RuntimeError):
+        await container.payment_processor().process_payment(
             PaymentReferenceTransfer(payment_id=payment.id)
         )
 
@@ -115,14 +115,14 @@ async def test_process_payment_reprocessing_is_idempotent(make_container, db):
     payment = await _create_pending(container, "proc-twice")
     reference = PaymentReferenceTransfer(payment_id=payment.id)
 
-    await container.payment_facade().process_payment(reference)
+    await container.payment_processor().process_payment(reference)
     first_ref = (
         await db.execute(
             select(PaymentORM.provider_ref).where(PaymentORM.id == payment.id)
         )
     ).scalar_one()
 
-    await container.payment_facade().process_payment(reference)  # повторная доставка
+    await container.payment_processor().process_payment(reference)  # повторная доставка
     second_ref = (
         await db.execute(
             select(PaymentORM.provider_ref).where(PaymentORM.id == payment.id)
@@ -142,7 +142,7 @@ async def test_process_payment_reprocessing_is_idempotent(make_container, db):
 async def test_process_payment_unknown_id_returns_none(make_container):
     container = make_container()
 
-    result = await container.payment_facade().process_payment(
+    result = await container.payment_processor().process_payment(
         PaymentReferenceTransfer(payment_id=uuid4())
     )
 

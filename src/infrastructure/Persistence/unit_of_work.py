@@ -4,8 +4,8 @@ from contextlib import asynccontextmanager
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from shared.Dto.context_transfer import ContextTransfer
-from shared.Port.persistence import DuplicateKeyError
+from shared.Dto import ContextTransfer
+from shared.Port import DuplicateKeyError, Transaction
 
 
 class SqlAlchemyUnitOfWork:
@@ -36,7 +36,7 @@ class SqlAlchemyUnitOfWork:
     @asynccontextmanager
     async def use_transaction(
         self, context_transfer: ContextTransfer | None
-    ) -> AsyncIterator[AsyncSession]:
+    ) -> AsyncIterator[Transaction]:
         """Enlisted-режим (в контексте есть транзакция) — отдаём её хэндл, commit
         делает владелец. Иначе открываем свою короткую транзакцию."""
         if context_transfer is not None and context_transfer.transaction is not None:

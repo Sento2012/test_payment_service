@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 
-from modules.Backend.Payment.PaymentExecute.Dto.payment_execute_transfer import PaymentExecuteTransfer
-from modules.Backend.Payment.PaymentExecute.Dto.provider_result_transfer import ProviderResultTransfer
+from modules.Backend.Payment.PaymentExecute.dto import (
+    PaymentExecuteTransfer,
+    ProviderResultTransfer,
+)
 
 
 class ProviderExecutePluginInterface(ABC):
