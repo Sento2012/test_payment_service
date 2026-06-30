@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 class Transaction(Protocol):
     """Непрозрачный хэндл транзакции. Домен не знает его природу (ORM/сессия) —
-    просто получает его из UnitOfWork и передаёт в репозитории-фабрики."""
+    просто получает его из UnitOfWork и передаёт в репозитории."""
 
 
 class UnitOfWork(Protocol):

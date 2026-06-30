@@ -15,12 +15,16 @@
 популярных подходов — Clean Architecture / layered architecture / DDD, — поэтому проект
 получился несколько шире, чем минимально достаточный. Чтобы это не мешало ревью, я
 подготовил краткую документацию — начать удобнее всего с
-**[обзора архитектуры и бизнес-логики на один экран](docs/overview.md)**.
+**[обзора архитектуры и бизнес-логики на один экран](docs/overview.md)**. Основные
+тонкости реализации (гарантии: outbox, идемпотентность по слоям, retry/DLQ) описаны
+в **[docs/implementation-notes.md](docs/implementation-notes.md)**.
 
 ## Документация
 
 - [docs/overview.md](docs/overview.md) — **краткий обзор
   архитектуры и бизнес-логики** (основные моменты на один экран).
+- [docs/implementation-notes.md](docs/implementation-notes.md) — **основные тонкости
+  реализации**: outbox, идемпотентность по слоям, retry/DLQ (на один экран).
 - [docs/architecture.md](docs/architecture.md) — поток обработки, Outbox, транзакции,
   идемпотентность по слоям, retry/DLQ.
 - [docs/project-structure.md](docs/project-structure.md) — структура проекта: модули/
